@@ -20,11 +20,18 @@ class ListRestaurants(APIView):
         serializer = RestaurantSerializer(qs, many=True)
         return Response(serializer.data)
 
+    def post(self, request, *args, **kwargs):
+        serializer = RestaurantSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()  # .save() will create a new instance.
+            return Response(serializer.validated_data)
+        return Response(serializer.errors)
+
 
 class SearchRestaurants(APIView):
 
     def get_queryset(self, slug):
-        return RestaurantLocation.objects.filter(  # filter return QuerySet not object like get()
+        return RestaurantLocation.objects.filter(
             Q(name__icontains=slug) |
             Q(name__iexact=slug) |
             Q(slug__icontains=slug) |
@@ -48,9 +55,22 @@ class DetailRestaurant(APIView):
         uuid = kwargs.get("uuid")
         try:
             restaurant = RestaurantLocation.objects.get(
-                id=uuid)  # get return object not QuerySet like filter()
+                id=uuid)
             serializer = RestaurantSerializer(restaurant)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except RestaurantLocation.DoesNotExist:
-            content = {'error': 'not found'}
+            content = {'error': 'wrong uuid'}
             return Response(content, status=status.HTTP_404_NOT_FOUND)
+
+    def post(self, request, *args, **kwargs):
+        uuid = kwargs.get("uuid")
+        try:
+            restaurant = RestaurantLocation.objects.get(id=uuid)
+            serializer = RestaurantSerializer(restaurant, data=request.data)
+
+            if serializer.is_valid():
+                serializer.save()  # .save() will update an instance.
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_404_NOT_FOUND)
+        except RestaurantLocation.DoesNotExist:
+            return Response({'error': 'wrong uuid'}, status=status.HTTP_404_NOT_FOUND)

@@ -13,8 +13,8 @@ class RestaurantLocation(models.Model):
         CAFE = 'CF', _('Cafe')
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=256, blank=True, null=True)
-    location = models.CharField(max_length=256, blank=True, null=True)
+    name = models.CharField(max_length=256)
+    location = models.CharField(max_length=256)
     category = models.CharField(
         max_length=2, choices=CATEGORY_CHOICES.choices, default=CATEGORY_CHOICES.RESTAURANT)
     timestamp = models.DateTimeField(auto_now_add=True)
