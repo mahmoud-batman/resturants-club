@@ -11,7 +11,8 @@ class RestaurantSerializer(serializers.ModelSerializer):
     # called when save() triggered
     def create(self, validated_data):
         ''' we can override the create method '''
-        return RestaurantLocation.objects.create(**validated_data)
+        restaurant = RestaurantLocation.objects.create(**validated_data)
+        return restaurant
 
     # called when save() triggered with the instance
     def update(self, instance, validated_data):

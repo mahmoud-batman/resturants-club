@@ -1,9 +1,10 @@
 from django.contrib import admin
 from django.urls import path
-from .views import ListRestaurants, SearchRestaurants, DetailRestaurant
+from .views import ListCreateRestaurants, SearchRestaurants, DetailUpdateRestaurant, DeleteRestaurant
 
 urlpatterns = [
-    path('', ListRestaurants.as_view()),
-    path('<uuid:uuid>/', DetailRestaurant.as_view()),
+    path('', ListCreateRestaurants.as_view()),
+    path('<uuid:uuid>/', DetailUpdateRestaurant.as_view()),
+    path('<uuid:uuid>/delete/', DeleteRestaurant.as_view()),
     path('<slug:slug>/', SearchRestaurants.as_view()),
 ]

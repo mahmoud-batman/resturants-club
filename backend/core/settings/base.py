@@ -17,7 +17,6 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
@@ -37,7 +36,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework',
-    
+    'rest_framework.authtoken',  # migrate
+
     'accounts.apps.AccountsConfig',
     'restaurants.apps.RestaurantsConfig',
 ]
@@ -125,7 +125,13 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-"""
-"""
+""""""
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        # 'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ]
+}
 
 AUTH_USER_MODEL = 'accounts.CustomUser'

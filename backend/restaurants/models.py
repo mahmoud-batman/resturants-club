@@ -4,6 +4,7 @@ from core.utils.unique_slug import unique_slug_generator
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
+from django.contrib.auth import get_user_model
 
 
 class RestaurantLocation(models.Model):
@@ -17,6 +18,8 @@ class RestaurantLocation(models.Model):
     location = models.CharField(max_length=256)
     category = models.CharField(
         max_length=2, choices=CATEGORY_CHOICES.choices, default=CATEGORY_CHOICES.RESTAURANT)
+    owner = models.ForeignKey(
+        get_user_model(), on_delete=models.CASCADE, blank=True, null=True,)
     timestamp = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     slug = models.SlugField(null=True, blank=True)
