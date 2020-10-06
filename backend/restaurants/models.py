@@ -19,7 +19,7 @@ class RestaurantLocation(models.Model):
     category = models.CharField(
         max_length=2, choices=CATEGORY_CHOICES.choices, default=CATEGORY_CHOICES.RESTAURANT)
     owner = models.ForeignKey(
-        get_user_model(), on_delete=models.CASCADE, blank=True, null=True,)
+        get_user_model(), on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     slug = models.SlugField(null=True, blank=True)

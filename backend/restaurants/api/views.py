@@ -16,17 +16,17 @@ class ListCreateRestaurants(APIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self, *args, **kwargs):
-        owner = kwargs.get("owner")
-        return RestaurantLocation.objects.filter(owner=owner)
+        user = self.request.user
+        if not user.is_superuser:
+            qs = user.restaurantlocation_set.all()
+        else:
+            qs = RestaurantLocation.objects.all()
+        return qs
 
     def get(self, request, *args, **kwargs):
         '''authenticated users list there data, superuser list all data'''
 
-        user = request.user
-        if not user.is_superuser:
-            qs = self.get_queryset(owner=user)
-        else:
-            qs = RestaurantLocation.objects.all()
+        qs = self.get_queryset()
         serializer = RestaurantSerializer(qs, many=True)
         return Response(serializer.data)
 
@@ -38,8 +38,8 @@ class ListCreateRestaurants(APIView):
         if serializer.is_valid():
             # .save() will create a new instance.
             serializer.save(owner=user)
-            return Response(serializer.validated_data)
-        return Response(serializer.errors)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_404_NOT_FOUND)
 
 
 class SearchRestaurants(APIView):
@@ -68,34 +68,34 @@ class DetailUpdateRestaurant(APIView):
 
     def get(self, request, *args, **kwargs):
         uuid = kwargs.get("uuid")
-        try:
-            restaurant = RestaurantLocation.objects.get(
-                id=uuid)
+        qs = RestaurantLocation.objects.filter(id=uuid)
+        restaurant = qs.first()
+        if restaurant:
             serializer = RestaurantSerializer(restaurant)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        except RestaurantLocation.DoesNotExist:
-            content = {'error': 'restaurant not found'}
-            return Response(content, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({'error': 'restaurant not found'}, status=status.HTTP_404_NOT_FOUND)
 
     def post(self, request, *args, **kwargs):
         """only owner can update"""
 
-        uuid = kwargs.get("uuid")
         user = request.user
-        try:
-            restaurant = RestaurantLocation.objects.get(id=uuid)
-            serializer = RestaurantSerializer(
-                restaurant, data=request.data, partial=True)
-            # partial=True , allow partial updates for required fields.
+        uuid = kwargs.get("uuid")
+        qs = RestaurantLocation.objects.filter(id=uuid)
+
+        restaurant = qs.first()
+        if restaurant:
             if restaurant.owner.id != user.id:
                 return Response({"error": "you are not the owner"}, status=status.HTTP_404_NOT_FOUND)
+            serializer = RestaurantSerializer(
+                restaurant, data=request.data, partial=True)
             if serializer.is_valid():
                 # .save() will update an instance.
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
             return Response(serializer.errors, status=status.HTTP_404_NOT_FOUND)
-        except RestaurantLocation.DoesNotExist:
-            return Response({'error': 'restaurant not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response({'error': 'restaurant not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
 class DeleteRestaurant(APIView):
@@ -103,12 +103,15 @@ class DeleteRestaurant(APIView):
     def post(self, request, *args, **kwargs):
         user = request.user
         uuid = kwargs.get("uuid")
-        try:
-            restaurant = RestaurantLocation.objects.get(id=uuid)
-            if not user.is_superuser and user.id != restaurant.owner.id:
-                return Response({"error": "you can't delete this restaurant"})
+        if user.is_superuser:
+            qs = RestaurantLocation.objects.filter(id=uuid)
+        else:
+            qs = user.restaurantlocation_set.filter(id=uuid)
+        restaurant = qs.first()
+        if restaurant:
+            # if not user.is_superuser and user.id != restaurant.owner.id:
+            #     return Response({"error": "you can't delete this restaurant"})
             serializer = RestaurantSerializer(restaurant)
             restaurant.delete()
             return Response(serializer.data)
-        except:
-            return Response({"error": "restaurant not found"})
+        return Response({"error": "restaurant not found"})

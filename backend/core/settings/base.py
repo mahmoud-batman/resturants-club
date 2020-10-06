@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',  # migrate
 
+    'items.apps.ItemsConfig',
     'accounts.apps.AccountsConfig',
     'restaurants.apps.RestaurantsConfig',
 ]
